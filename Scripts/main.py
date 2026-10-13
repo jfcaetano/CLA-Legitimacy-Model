@@ -1,17 +1,27 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Mar 14 20:33:57 2026
+
+@author: jfcaetano
+"""
+
 import numpy as np
 import networkx as nx
 import pandas as pd
 import itertools
 import os
+from tqdm import tqdm
 
 from belief import Mode
 from simulator import Simulator
+from datetime import datetime
 
 # -------------------------
 # Core simulation settings
 # -------------------------
 N = 100
-T = 8000
+T = 3000000
 S = 5
 
 mode = Mode.Default
@@ -26,41 +36,48 @@ network_name = "SmallWorlds"
 # Network parameters
 nx_params = {"n": N, "k": 8, "p": 0.01}
 
-experiment = "Watts Strogatz Model"
+experiment = "Watts Strogatz Model_" + datetime.now().strftime("%Y%m%d_%H%M%S")
+
 save = True
 
 # -------------------------
 # Stability settings
 # -------------------------
-# A run stops when population ratios remain unchanged
-# for `stable_window` consecutive steps.
+
 STOP_AT_STABILITY = True
-STABLE_WINDOW = 100
-STABILITY_ATOL = 1e-12
+STABLE_WINDOW = 1000
+STABILITY_ATOL = 1e-9
+
+# Phase 1: early prohibition / overconfident legal reading
+#(0.25, 0.10, 0.50, 0.65)
+
+# Phase 2: dispute / recalibration
+#(0.40, 0.08, 0.30, 0.55)
+
+# Phase 3: post-clarification / refinement
+#(0.70, 0.05, 0.30, 0.45)
 
 # -------------------------
-# Full 81-scenario grid
-# 3 x 3 x 3 x 3 = 81
+# Scenario grid
 # -------------------------
-explainability_vals = [0.25, 0.40, 0.70]
-controversy_growth_vals = [0.05, 0.08, 0.12]
-trust_sensitivity_vals = [0.05, 0.30, 0.50]
-fallback_threshold_vals = [0.45, 0.55, 0.65]
+
+explainability_vals = [0.75]
+controversy_growth_vals = [0.10]
+trust_sensitivity_vals = [0.30]
+fallback_threshold_vals = [0.25]
 
 # Fixed in this run
 controversy_decay = 0.05
 
-# -------------------------
 # Output folders
-# -------------------------
 master_output_dir = os.path.join("./Output", experiment, "grid_runs")
 os.makedirs(master_output_dir, exist_ok=True)
 
 results = []
 
-# -------------------------
+
 # Run all scenarios
-# -------------------------
+
 scenario_counter = 0
 total_scenarios = (
     len(explainability_vals)
@@ -69,12 +86,21 @@ total_scenarios = (
     * len(fallback_threshold_vals)
 )
 
-for expl, cg, ts, ft in itertools.product(
-    explainability_vals,
-    controversy_growth_vals,
-    trust_sensitivity_vals,
-    fallback_threshold_vals,
+
+
+for expl, cg, ts, ft in tqdm(
+    itertools.product(
+        explainability_vals,
+        controversy_growth_vals,
+        trust_sensitivity_vals,
+        fallback_threshold_vals,
+    ),
+    total=total_scenarios,
+    desc="Simulation Progress",
+    unit="scenario",
 ):
+    
+    
     scenario_counter += 1
     scenario_name = f"expl={expl}_cg={cg}_ts={ts}_ft={ft}"
 
@@ -113,9 +139,7 @@ for expl, cg, ts, ft in itertools.product(
     avg_agent, sd_agent, frac_mean, frac_sd, belief_dist, regulation_summary = data
     temporal_data = (avg_agent, sd_agent, frac_mean, frac_sd)
 
-    # -------------------------
-    # Save plot for each scenario
-    # -------------------------
+
     sim.visBeliefsOverTime(
         data=temporal_data,
         experiment=experiment,
@@ -126,9 +150,7 @@ for expl, cg, ts, ft in itertools.product(
         plot_sd=False,
     )
 
-    # -------------------------
-    # Stable-state values from per-run stable points
-    # -------------------------
+
     stable_neutral = regulation_summary.get("stable_neutral_avg", np.nan)
     stable_method_a = regulation_summary.get("stable_method_a_avg", np.nan)
     stable_method_b = regulation_summary.get("stable_method_b_avg", np.nan)
@@ -150,9 +172,7 @@ for expl, cg, ts, ft in itertools.product(
         f"Stable Method C: {stable_method_c:.4f}"
     )
 
-    # -------------------------
-    # Collect summary
-    # -------------------------
+
     results.append({
         "scenario": scenario_name,
         "method_c_explainability": expl,
@@ -185,19 +205,16 @@ for expl, cg, ts, ft in itertools.product(
         "legitimacy_score": regulation_summary["trust_avg"] - regulation_summary["controversy_avg"],
     })
 
-# -------------------------
+
 # Save full summary
-# -------------------------
+
 summary_df = pd.DataFrame(results)
 
 summary_csv = os.path.join(master_output_dir, "scenario_summary_stable_state.csv")
 summary_df.to_csv(summary_csv, index=False)
 
-# -------------------------
 # Best and worst cases
-# -------------------------
 
-# 1. Best for Method C stabilization
 best_method_c = summary_df.sort_values(
     by=["stable_method_c", "trust_avg", "controversy_avg"],
     ascending=[False, False, True]
@@ -208,7 +225,6 @@ worst_method_c = summary_df.sort_values(
     ascending=[True, True, False]
 ).head(10)
 
-# 2. Strongest fallback to Method B
 best_fallback_b = summary_df.sort_values(
     by=["stable_method_b", "fallback_strength_at_stable", "trust_avg"],
     ascending=[False, False, True]
@@ -219,7 +235,6 @@ worst_fallback_b = summary_df.sort_values(
     ascending=[True, True, False]
 ).head(10)
 
-# 3. Highest trust cases
 best_trust = summary_df.sort_values(
     by=["trust_avg", "controversy_avg", "stable_method_c"],
     ascending=[False, True, False]
@@ -230,7 +245,6 @@ worst_trust = summary_df.sort_values(
     ascending=[True, False, True]
 ).head(10)
 
-# 4. Highest controversy cases
 best_controversy = summary_df.sort_values(
     by=["controversy_avg", "trust_avg", "stable_method_b"],
     ascending=[False, True, False]
@@ -241,7 +255,6 @@ lowest_controversy = summary_df.sort_values(
     ascending=[True, False, False]
 ).head(10)
 
-# 5. Best overall legitimacy
 best_legitimacy = summary_df.sort_values(
     by=["legitimacy_score", "stable_method_c", "trust_avg"],
     ascending=[False, False, False]
@@ -252,9 +265,7 @@ worst_legitimacy = summary_df.sort_values(
     ascending=[True, True, True]
 ).head(10)
 
-# -------------------------
-# Save ranking tables
-# -------------------------
+
 best_method_c.to_csv(os.path.join(master_output_dir, "top10_method_c_stable.csv"), index=False)
 worst_method_c.to_csv(os.path.join(master_output_dir, "bottom10_method_c_stable.csv"), index=False)
 
@@ -270,41 +281,5 @@ lowest_controversy.to_csv(os.path.join(master_output_dir, "bottom10_controversy_
 best_legitimacy.to_csv(os.path.join(master_output_dir, "top10_legitimacy_stable.csv"), index=False)
 worst_legitimacy.to_csv(os.path.join(master_output_dir, "bottom10_legitimacy_stable.csv"), index=False)
 
-# -------------------------
-# Print results
-# -------------------------
-pd.set_option("display.max_columns", None)
-pd.set_option("display.width", 200)
 
-print("\nAll scenarios finished.")
-print(f"\nStable-state summary saved to:\n{summary_csv}")
-
-print("\nTop 10 scenarios for Method C stabilization at stable state:")
-print(best_method_c)
-
-print("\nBottom 10 scenarios for Method C stabilization at stable state:")
-print(worst_method_c)
-
-print("\nTop 10 fallback scenarios to Method B at stable state:")
-print(best_fallback_b)
-
-print("\nBottom 10 fallback scenarios to Method B at stable state:")
-print(worst_fallback_b)
-
-print("\nTop 10 trust scenarios:")
-print(best_trust)
-
-print("\nBottom 10 trust scenarios:")
-print(worst_trust)
-
-print("\nTop 10 controversy scenarios:")
-print(best_controversy)
-
-print("\nLowest 10 controversy scenarios:")
-print(lowest_controversy)
-
-print("\nTop 10 legitimacy scenarios:")
-print(best_legitimacy)
-
-print("\nBottom 10 legitimacy scenarios:")
-print(worst_legitimacy)
+print("\nEnd")
