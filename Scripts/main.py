@@ -43,19 +43,20 @@ save = True
 # -------------------------
 # Stability settings
 # -------------------------
-
+# A run stops when population ratios remain unchanged
+# for `stable_window` consecutive steps.
 STOP_AT_STABILITY = True
 STABLE_WINDOW = 1000
 STABILITY_ATOL = 1e-9
 
 # Phase 1: early prohibition / overconfident legal reading
-#(0.25, 0.10, 0.50, 0.65)
+#(0.75, 0.10, 0.30, 0.25)
 
 # Phase 2: dispute / recalibration
-#(0.40, 0.08, 0.30, 0.55)
+#(0.25, 0.15, 0.35, 0.65)
 
 # Phase 3: post-clarification / refinement
-#(0.70, 0.05, 0.30, 0.45)
+#(0.00, 0.00, 0.00, 0.00)
 
 # -------------------------
 # Scenario grid
@@ -66,18 +67,20 @@ controversy_growth_vals = [0.10]
 trust_sensitivity_vals = [0.30]
 fallback_threshold_vals = [0.25]
 
-# Fixed in this run
+# Fixed
 controversy_decay = 0.05
 
+# -------------------------
 # Output folders
+# -------------------------
 master_output_dir = os.path.join("./Output", experiment, "grid_runs")
 os.makedirs(master_output_dir, exist_ok=True)
 
 results = []
 
-
+# -------------------------
 # Run all scenarios
-
+# -------------------------
 scenario_counter = 0
 total_scenarios = (
     len(explainability_vals)
@@ -139,7 +142,9 @@ for expl, cg, ts, ft in tqdm(
     avg_agent, sd_agent, frac_mean, frac_sd, belief_dist, regulation_summary = data
     temporal_data = (avg_agent, sd_agent, frac_mean, frac_sd)
 
-
+    # -------------------------
+    # Save plot for each scenario
+    # -------------------------
     sim.visBeliefsOverTime(
         data=temporal_data,
         experiment=experiment,
@@ -150,7 +155,9 @@ for expl, cg, ts, ft in tqdm(
         plot_sd=False,
     )
 
-
+    # -------------------------
+    # Stable-state values from per-run stable points
+    # -------------------------
     stable_neutral = regulation_summary.get("stable_neutral_avg", np.nan)
     stable_method_a = regulation_summary.get("stable_method_a_avg", np.nan)
     stable_method_b = regulation_summary.get("stable_method_b_avg", np.nan)
@@ -206,14 +213,12 @@ for expl, cg, ts, ft in tqdm(
     })
 
 
-# Save full summary
-
 summary_df = pd.DataFrame(results)
 
 summary_csv = os.path.join(master_output_dir, "scenario_summary_stable_state.csv")
 summary_df.to_csv(summary_csv, index=False)
 
-# Best and worst cases
+
 
 best_method_c = summary_df.sort_values(
     by=["stable_method_c", "trust_avg", "controversy_avg"],
