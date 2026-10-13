@@ -279,6 +279,12 @@ This extracts the *last recorded* point from each realization, which can differ 
 
 ## Project status and citation
 
-This is a research simulation repository. Its outputs describe the behavior of the **specified model assumptions**, not causal evidence about real-world regulatory systems without additional calibration and validation.
+**Model and source code:**
 
-For attribution, link to the repository: [jfcaetano/CLA-Legitimacy-Model](https://github.com/jfcaetano/CLA-Legitimacy-Model). If this model accompanies a publication, add the publication's bibliographic reference and DOI here.
+> Caetano, José Carlos Ferraz. *CLA Legitimacy Model* [Computer software]. GitHub. https://github.com/jfcaetano/CLA-Legitimacy-Model
+
+**Associated doctoral thesis:**
+
+> Caetano, José Carlos Ferraz. *The Emergence of Food Regulation in Portugal: Legislation and Science-Based Regulatory Models (1850–1928).* Ph.D. thesis in History and Philosophy of Science.
+
+When referencing the software in academic work, please cite the repository and, where relevant, the associated doctoral research. The thesis citation above intentionally omits the institution and submission year, which should be added once confirmed.
