@@ -7,7 +7,6 @@ from tqdm import tqdm
 from model import KnowledgeModel
 from belief import Belief
 
-# Use Arial everywhere in plots
 plt.rcParams["font.family"] = "Arial"
 
 
@@ -33,9 +32,9 @@ class Simulator:
         fallback_threshold=0.55,
         stop_at_stability=True,
         stable_window=100,
-        stability_atol=0.01,          # plateau tolerance
+        stability_atol=0.01,          
         post_stable_steps=1000,
-        plot_smoothing_window=1001,    # use odd numbers: 101, 201, 301...
+        plot_smoothing_window=1001,   
         compute_agent_history_stats=False,
     ):
         self.N = N
@@ -142,7 +141,7 @@ class Simulator:
                 band = np.max(recent, axis=0) - np.min(recent, axis=0)
 
                 if np.all(band <= self.stability_atol):
-                    stable_time = t  # confirmation moment
+                    stable_time = t  
 
             # Continue for post_stable_steps after confirmation
             if (
