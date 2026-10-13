@@ -1,0 +1,6 @@
+Simulation,Stable_Time_Confirmed,Steps_Run,Reached_Stability,Post_Stable_Steps,method_c_explainability,controversy_growth,controversy_decay,trust_sensitivity,fallback_threshold,Stable_Neutral,Stable_Method_A,Stable_Method_B,Stable_Method_C,Final_Trust,Final_Controversy
+1,83093,84094,True,1000,0,0,0.05,0,0,0.0,0.0,0.0,1.0,1.0,0.0
+2,56113,57114,True,1000,0,0,0.05,0,0,0.0,0.0,0.0,1.0,1.0,0.0
+3,10668,11669,True,1000,0,0,0.05,0,0,0.0,0.0,0.0,1.0,1.0,0.0
+4,70926,71927,True,1000,0,0,0.05,0,0,0.0,0.0,0.0,1.0,1.0,0.0
+5,33345,34346,True,1000,0,0,0.05,0,0,0.0,0.0,0.0,1.0,1.0,0.0
