@@ -121,7 +121,6 @@ class KnowledgeModel(Model):
         frac_b = sum(1 for b in beliefs if b == Belief.Method_B) / n
         frac_c = sum(1 for b in beliefs if b == Belief.Method_C) / n
 
-        # High disagreement means controversy is more likely
         disagreement = 1.0 - max(frac_a, frac_b, frac_c)
 
         # Method C creates pressure when it is visible but hard to explain
