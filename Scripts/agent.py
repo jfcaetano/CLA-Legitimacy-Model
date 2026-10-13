@@ -103,7 +103,6 @@ class PopAgent(Agent):
             else:
                 self.setBelief(Belief.Method_C)
 
-        # Reversion / movement toward A
         if (
             self.belief == Belief.Method_C
             and other.belief == Belief.Method_A
@@ -176,7 +175,6 @@ class PopAgent(Agent):
             else:
                 self.setBelief(Belief.Method_B)
 
-        # New fallback rule
         if self.belief == Belief.Method_C and self.should_fallback_from_method_c():
             self.setBelief(Belief.Method_B)
 
